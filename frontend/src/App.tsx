@@ -163,7 +163,7 @@ function Nav({ onTerminal }: { onTerminal: () => void }) {
         <button className="nav-terminal-btn" onClick={onTerminal}>&gt;_ TERMINAL</button>
       </div>
       <div className="nav-right">
-        <a className="nav-resume-btn" href="#" download>↓ RESUME</a>
+        <a className="nav-resume-btn" href={`${import.meta.env.BASE_URL}Amee_Chhatbar_Resume.pdf`} download="Amee_Chhatbar_Resume.pdf">↓ RESUME</a>
       </div>
     </nav>
   )
