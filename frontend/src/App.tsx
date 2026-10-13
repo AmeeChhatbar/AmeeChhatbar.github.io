@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import type { KeyboardEvent, ReactNode } from 'react'
 import './App.css'
+import formalPhoto from './assets/formal.jpeg'
+import casualPhoto from './assets/causal.jpeg'
 
 // ── TYPES ─────────────────────────────────────────────────────────────────────
 interface Experience { company: string; role: string; period: string; points: string[]; tools: string[] }
@@ -11,6 +13,7 @@ interface PortfolioData {
   experiences: Experience[]; projects: Project[]
   achievements: string[]; certificates: string[]
 }
+const hasRepo = (p: Project) => !!p.githubUrl && p.githubUrl !== '#'
 
 // ── SCROLL REVEAL ─────────────────────────────────────────────────────────────
 function useReveal(threshold = 0.12) {
@@ -66,7 +69,7 @@ function buildExperience(d: PortfolioData): Line[] {
 }
 function buildProjects(d: PortfolioData): Line[] {
   const ls: Line[] = [BL(),L(<span className="tc-sec">$ ls projects/</span>),BL()]
-  d.projects.forEach((proj,i)=>{ls.push(L(<span className="tc-proj">{proj.title}</span>));ls.push(L(<span className="tc-dim">{proj.description}</span>));ls.push(L(<div className="tc-tags sm">{proj.stack.map(s=><span key={s} className="tc-tag">{s}</span>)}</div>));if(i<d.projects.length-1)ls.push(BL())})
+  d.projects.forEach((proj,i)=>{ls.push(L(<span className="tc-proj">{proj.title}</span>));ls.push(L(<span className="tc-dim">{proj.description}</span>));if(hasRepo(proj))ls.push(L(<a className="tc-lnk" href={proj.githubUrl} target="_blank" rel="noreferrer">{proj.githubUrl.replace('https://','')}</a>));ls.push(L(<div className="tc-tags sm">{proj.stack.map(s=><span key={s} className="tc-tag">{s}</span>)}</div>));if(i<d.projects.length-1)ls.push(BL())})
   ls.push(BL());return ls
 }
 function buildAchievements(d: PortfolioData): Line[] {
@@ -167,6 +170,18 @@ function Nav({ onTerminal }: { onTerminal: () => void }) {
 }
 
 // ── HERO ──────────────────────────────────────────────────────────────────────
+function PhotoFrame({ className, src, alt = '' }: { className: string; src?: string; alt?: string }) {
+  return (
+    <div className={`hero-frame ${className}`}>
+      <div className="photo-inner">
+        <div className="photo-corner tl"/><div className="photo-corner tr"/>
+        {src ? <img className="photo-img" src={src} alt={alt}/> : <div className="photo-placeholder"><span>ADD PHOTO</span></div>}
+        <div className="photo-corner bl"/><div className="photo-corner br"/>
+      </div>
+    </div>
+  )
+}
+
 function HeroSection() {
   return (
     <section className="s-hero" id="home">
@@ -180,20 +195,8 @@ function HeroSection() {
           <p>JAVA DEVELOPER.</p>
         </div>
         <div className="hero-photos">
-          <div className="hero-frame hero-frame-1">
-            <div className="photo-inner">
-              <div className="photo-corner tl"/><div className="photo-corner tr"/>
-              <div className="photo-placeholder"><span>ADD PHOTO</span></div>
-              <div className="photo-corner bl"/><div className="photo-corner br"/>
-            </div>
-          </div>
-          <div className="hero-frame hero-frame-2">
-            <div className="photo-inner">
-              <div className="photo-corner tl"/><div className="photo-corner tr"/>
-              <div className="photo-placeholder"><span>ADD PHOTO</span></div>
-              <div className="photo-corner bl"/><div className="photo-corner br"/>
-            </div>
-          </div>
+          <PhotoFrame className="hero-frame-1" src={formalPhoto} alt="Amee Chhatbar"/>
+          <PhotoFrame className="hero-frame-2" src={casualPhoto} alt="Amee Chhatbar"/>
         </div>
         <div className="hero-status">
           <p>OPEN FOR<br/>FULL-TIME ROLES</p>
@@ -335,6 +338,7 @@ function WorkItem({ proj, meta }: { proj: Project; meta: { num: string; cat: str
       <div className="work-center">
         <div className="work-title">{proj.title.toUpperCase()}</div>
         <p className="work-desc">{proj.description}</p>
+        {hasRepo(proj) && <a className="work-link" href={proj.githubUrl} target="_blank" rel="noreferrer">VIEW ON GITHUB ↗</a>}
       </div>
       <CircleDot/>
     </div>
