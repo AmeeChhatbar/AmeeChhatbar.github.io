@@ -636,6 +636,38 @@ body::before {
 .tc-tag.accent { border-color:#4ec9b0; color:#4ec9b0; }
 
 /* ════════════════════════════════════════════════════════════════════════════
+   TERMINAL GAMES
+════════════════════════════════════════════════════════════════════════════ */
+.gm       { margin: 6px 0 12px; user-select: none; cursor: default; }
+.gm-head  { display:flex; flex-wrap:wrap; gap:18px; margin-bottom:8px; font-size:12px; color:#555; }
+.gm-head b { color:#dcdcaa; font-weight:600; }
+.gm-title { color:#c586c0; font-weight:600; letter-spacing:0.12em; }
+.gm-board { display:inline-block; white-space:pre; line-height:1.12; font-size:clamp(7px, 2.3vw, 13px); touch-action:none; }
+.gm-wall  { color:#333; } .gm-empty { color:#1c1c1c; }
+.gm-sh    { color:#9cfce6; } .gm-sb { color:#4ec9b0; }
+.gm-food  { color:#e63329; } .gm-dead { color:#f44747; }
+.gm-msg   { margin-top:8px; font-size:12px; color:#555; } .gm-msg.bad { color:#f44747; }
+.gm-ok    { color:#4ec9b0; } .gm-miss { color:#f44747; text-decoration:underline; }
+.gm-art   { margin:0; color:#4ec9b0; line-height:1.25; } .gm-art.bad { color:#f44747; }
+.gm-word  { color:#dcdcaa; font-weight:600; letter-spacing:0.3em; }
+.gm-word.gm-quote { letter-spacing:0.02em; }
+
+.gm-grid  { display:grid; grid-template-columns:repeat(4, 64px); gap:6px; padding:6px; width:max-content; background:#111; border:1px solid #222; border-radius:6px; touch-action:none; }
+.gm-tile  { height:64px; display:flex; align-items:center; justify-content:center; border-radius:4px; background:#161616; font-size:20px; font-weight:700; transition:background 0.12s; }
+
+.gm-actions { display:flex; gap:12px; margin-top:8px; }
+.gm-btn   { background:none; border:none; padding:0; color:#dcdcaa; font-family:var(--mono); font-size:12px; cursor:pointer; }
+.gm-btn:hover { color:#4ec9b0; }
+.gm-pad   { display:none; grid-template-areas:". u ." "l d r"; grid-template-columns:repeat(3, 46px); gap:6px; margin-top:10px; }
+.gm-pad button { height:42px; background:#161616; border:1px solid #2a2a2a; border-radius:6px; color:#4ec9b0; font-size:14px; }
+.gm-pad-up { grid-area:u; } .gm-pad-left { grid-area:l; } .gm-pad-down { grid-area:d; } .gm-pad-right { grid-area:r; }
+@media (pointer: coarse) { .gm-pad { display:grid; } }
+@media (max-width: 520px) {
+  .gm-grid { grid-template-columns:repeat(4, 54px); }
+  .gm-tile { height:54px; font-size:16px; }
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
    RESPONSIVE
 ════════════════════════════════════════════════════════════════════════════ */
 @media (max-width: 1024px) {

@@ -3,6 +3,11 @@ import type { KeyboardEvent, ReactNode } from 'react'
 import './App.css'
 import formalPhoto from './assets/formal.jpeg'
 import casualPhoto from './assets/causal.jpeg'
+import { GAMES, getBest } from './games/common'
+import { Game2048, Snake } from './games/live'
+import type { LiveGameProps } from './games/live'
+import { TEXT_GAMES } from './games/text'
+import type { TextGame } from './games/text'
 
 // ── TYPES ─────────────────────────────────────────────────────────────────────
 interface Experience { company: string; role: string; period: string; points: string[]; tools: string[] }
@@ -44,9 +49,14 @@ const ASCII_NAME = [
 const TCMDS: [string, string, string][] = [
   ['who','w','personal info & contact'],['skills','s','languages and tools'],
   ['experience','exp','internship history'],['projects','pj','featured projects'],
-  ['achievements','a','achievements & certs'],['banner','b','show this screen'],
-  ['clear','','clear the terminal'],
+  ['achievements','a','achievements & certs'],['games','g','play terminal games'],
+  ['banner','b','show this screen'],['clear','','clear the terminal'],
 ]
+const LIVE_GAMES: Record<string, (p: LiveGameProps) => ReactNode> = { snake: Snake, '2048': Game2048 }
+function LiveGame({ name, onExit }: LiveGameProps & { name: string }) {
+  return name === 'snake' ? <Snake onExit={onExit}/> : <Game2048 onExit={onExit}/>
+}
+type ActiveGame = { kind: 'live'; name: string } | { kind: 'text'; game: TextGame }
 function tcRow(c: string, s: string, d: string) {
   return L(<div className="tc-row"><span><span className="tc-br">[</span><span className="tc-name">{c}</span><span className="tc-br">]</span>{s&&<><span className="tc-dim"> or </span><span className="tc-br">[</span><span className="tc-name">{s}</span><span className="tc-br">]</span></>}</span><span className="tc-desc">{d}</span></div>)
 }
@@ -75,8 +85,13 @@ function buildProjects(d: PortfolioData): Line[] {
 function buildAchievements(d: PortfolioData): Line[] {
   return [BL(),L(<span className="tc-sec">$ cat achievements.txt</span>),BL(),L(<span className="tc-key">achievements</span>),...d.achievements.map(a=>L(<><span className="tc-bul">  ▸ </span><span className="tc-val">{a}</span></>)),BL(),L(<span className="tc-key">certificates</span>),...d.certificates.map(c=>L(<><span className="tc-bul">  ▸ </span><span className="tc-val">{c}</span></>)),BL()]
 }
+function buildGames(): Line[] {
+  const bestLabel = (g: string) => { const b = getBest(g); return b ? `  · best ${b}${g==='typing'?' wpm':''}` : '' }
+  return [BL(),L(<span className="tc-sec">$ ls ~/games</span>),BL(),...GAMES.map(([c,d])=>tcRow(c,'',d+bestLabel(c))),BL(),L(<span className="tc-dim">type a game's name to play, e.g. <span className="tc-name">snake</span> — type <span className="tc-name">quit</span> to leave a game</span>),BL()]
+}
 
-function TPrompt() {
+function TPrompt({ game }: { game?: string }) {
+  if (game) return <span className="tc-prompt" aria-hidden><span className="tc-p-p">{game}</span><span className="tc-p-d">&gt; </span></span>
   return <span className="tc-prompt" aria-hidden><span className="tc-p-u">amee</span><span className="tc-p-at">@</span><span className="tc-p-h">portfolio</span><span className="tc-p-s">:</span><span className="tc-p-p">~</span><span className="tc-p-d">$ </span></span>
 }
 
@@ -85,13 +100,27 @@ function TerminalEmulator({ data }: { data: PortfolioData }) {
   const [input, setInput] = useState('')
   const [cmdHist, setCmdHist] = useState<string[]>([])
   const [, setHistIdx] = useState(-1)
+  const [game, setGame] = useState<ActiveGame | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [lines])
-  useEffect(() => { inputRef.current?.focus() }, [])
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [lines, game])
+  useEffect(() => { if (game?.kind !== 'live') inputRef.current?.focus() }, [game])
+  const runTextGame = (g: TextGame, raw: string) => {
+    const echo = L(<div className="tc-echo"><TPrompt game={g.name}/><span>{raw}</span></div>)
+    if (['quit','exit'].includes(raw.trim().toLowerCase())) {
+      setGame(null); setLines(p=>[...p,echo,...(g.quit?.()??[]).map(L),L(<span className="tc-dim">left {g.name}. type [games] to play again.</span>),BL()]); return
+    }
+    const r = g.input(raw)
+    if (r.done) setGame(null)
+    setLines(p=>[...p,echo,...r.out.map(L),...(r.done?[BL(),L(<span className="tc-dim">thanks for playing! type [{g.name}] for another round.</span>),BL()]:[])])
+  }
   const run = (raw: string) => {
+    if (game?.kind === 'text') return runTextGame(game.game, raw)
     const cmd = raw.trim().toLowerCase()
     const echo = L(<div className="tc-echo"><TPrompt /><span>{raw}</span></div>)
+    const gameName = cmd.replace(/^play\s+/, '')
+    if (LIVE_GAMES[gameName]) { setGame({ kind: 'live', name: gameName }); setLines(p=>[...p,echo]); return }
+    if (TEXT_GAMES[gameName]) { const g = TEXT_GAMES[gameName](); setGame({ kind: 'text', game: g }); setLines(p=>[...p,echo,BL(),...g.intro.map(L),BL()]); return }
     if (cmd === 'clear') { setLines([]); return }
     if (cmd === 'email') { window.open(`mailto:${data.email}`); setLines(p=>[...p,echo,L(<span className="tc-dim">opening email client...</span>),BL()]); return }
     if (cmd === 'linkedin') { window.open(data.linkedin,'_blank'); setLines(p=>[...p,echo,L(<span className="tc-dim">opening LinkedIn...</span>),BL()]); return }
@@ -104,6 +133,7 @@ function TerminalEmulator({ data }: { data: PortfolioData }) {
       case 'experience':case 'exp':case 'e': out=buildExperience(data);break
       case 'projects':case 'pj': out=buildProjects(data);break
       case 'achievements':case 'a':case 'certs': out=buildAchievements(data);break
+      case 'games':case 'g':case 'play': out=buildGames();break
       case 'banner':case 'b': out=buildBanner(data);break
       case '': out=[];break
       default: out=[BL(),L(<><span className="tc-err">command not found: {cmd}</span><span className="tc-dim"> — type [help]</span></>),BL()]
@@ -118,7 +148,8 @@ function TerminalEmulator({ data }: { data: PortfolioData }) {
   return (
     <div className="tc-body" onClick={()=>inputRef.current?.focus()}>
       {lines.map(l=><div key={l.id} className="tc-line">{l.el}</div>)}
-      <div className="tc-input-row"><TPrompt /><input ref={inputRef} className="tc-input" value={input} onChange={e=>setInput(e.target.value)} onKeyDown={onKey} spellCheck={false} autoComplete="off" autoCorrect="off" autoCapitalize="off"/></div>
+      {game?.kind === 'live' ? <LiveGame name={game.name} onExit={summary=>{ setGame(null); setLines(p=>[...p,BL(),...summary.map(L),BL()]) }}/>
+      : <div className="tc-input-row"><TPrompt game={game?.kind === 'text' ? game.game.name : undefined}/><input ref={inputRef} className="tc-input" value={input} onChange={e=>setInput(e.target.value)} onKeyDown={onKey} spellCheck={false} autoComplete="off" autoCorrect="off" autoCapitalize="off"/></div>}
       <div ref={bottomRef}/>
     </div>
   )
