@@ -59,8 +59,8 @@ public class ApiController {
         ));
 
         data.setProjects(List.of(
-                new Project("Bookmark System",
-                        "Organize articles, books, and movies with login & session management.",
+                new Project("ShelfIt",
+                        "Bookmark system to organize articles, books, and movies with login & session management.",
                         List.of("Java", "MySQL", "JDBC", "BufferedReader"), "https://github.com/AmeeChhatbar/ShelfIt"),
                 new Project("Sorting Visualiser",
                         "Step-by-step visualizer demonstrating sorting algorithms for education.",
