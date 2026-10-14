@@ -350,12 +350,13 @@ function TechStackSection() {
 }
 
 // ── SELECTED WORKS ────────────────────────────────────────────────────────────
-const WORK_META = [
-  { num:'01 / 2024', cat:'ML RESEARCH' },
-  { num:'02 / 2023', cat:'DATA SCIENCE' },
-  { num:'03 / 2022', cat:'BACKEND ENGINEERING' },
-  { num:'04 / 2022', cat:'WEB DEVELOPMENT' },
-]
+const WORK_META: Record<string, { year: string; cat: string }> = {
+  'Community Portal':   { year:'2025', cat:'BACKEND ENGINEERING' },
+  'ShelfIt':            { year:'2025', cat:'BACKEND ENGINEERING' },
+  'Sorting Visualiser': { year:'2022', cat:'BACKEND ENGINEERING' },
+  'Colour Detection':   { year:'2023', cat:'DATA SCIENCE' },
+  'Dance Connect':      { year:'2022', cat:'WEB DEVELOPMENT' },
+}
 
 function WorkItem({ proj, meta }: { proj: Project; meta: { num: string; cat: string } }) {
   const { ref, on } = useReveal()
@@ -380,9 +381,10 @@ function SelectedWorksSection({ projects }: { projects: Project[] }) {
   return (
     <section className="s-works">
       <div className="works-label">SELECTED WORKS</div>
-      {projects.slice(0, 4).map((proj, i) => (
-        <WorkItem key={i} proj={proj} meta={WORK_META[i] ?? { num:`0${i+1} / 2024`, cat:'ENGINEERING' }}/>
-      ))}
+      {projects.map((proj, i) => {
+        const m = WORK_META[proj.title] ?? { year:'2025', cat:'ENGINEERING' }
+        return <WorkItem key={proj.title} proj={proj} meta={{ num:`${String(i+1).padStart(2,'0')} / ${m.year}`, cat:m.cat }}/>
+      })}
     </section>
   )
 }

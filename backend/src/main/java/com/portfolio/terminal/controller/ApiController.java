@@ -59,6 +59,9 @@ public class ApiController {
         ));
 
         data.setProjects(List.of(
+                new Project("Community Portal",
+                        "Spring Boot backend for a community platform — JWT auth with email verification, posts, comments & likes, direct messages, real-time group chat over WebSockets, notifications and content reporting.",
+                        List.of("Java 21", "Spring Boot", "Spring Security", "JWT", "WebSocket", "PostgreSQL", "JPA"), "https://github.com/AmeeChhatbar/community_portal"),
                 new Project("ShelfIt",
                         "Bookmark system to organize articles, books, and movies with login & session management.",
                         List.of("Java", "MySQL", "JDBC", "BufferedReader"), "https://github.com/AmeeChhatbar/ShelfIt"),
