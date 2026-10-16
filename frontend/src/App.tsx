@@ -9,15 +9,9 @@ import type { LiveGameProps } from './games/live'
 import { TEXT_GAMES } from './games/text'
 import type { TextGame } from './games/text'
 
-// ── TYPES ─────────────────────────────────────────────────────────────────────
-interface Experience { company: string; role: string; period: string; points: string[]; tools: string[] }
-interface Project { title: string; description: string; stack: string[]; githubUrl: string }
-interface PortfolioData {
-  name: string; taglines: string[]; email: string; phone: string; linkedin: string; degree: string
-  skills: { languages: string[]; tools: string[] }
-  experiences: Experience[]; projects: Project[]
-  achievements: string[]; certificates: string[]
-}
+import { portfolio } from './data/portfolio'
+import type { PortfolioData, Project } from './data/portfolio'
+
 const hasRepo = (p: Project) => !!p.githubUrl && p.githubUrl !== '#'
 
 // ── SCROLL REVEAL ─────────────────────────────────────────────────────────────
@@ -515,19 +509,12 @@ function CircleDot() {
 
 // ── APP ───────────────────────────────────────────────────────────────────────
 export default function App() {
-  const [data, setData] = useState<PortfolioData | null>(null)
+  const data = portfolio
   const [showTerminal, setShowTerminal] = useState(false)
-  useEffect(() => { fetch('http://localhost:8080/api/portfolio').then(r=>r.json()).then(setData) }, [])
   useEffect(() => {
     const h = (e: globalThis.KeyboardEvent) => { if((e.ctrlKey||e.metaKey)&&e.key==='`'){e.preventDefault();setShowTerminal(v=>!v)} }
     window.addEventListener('keydown', h); return ()=>window.removeEventListener('keydown', h)
   }, [])
-
-  if (!data) return (
-    <div className="site-loading">
-      <div className="loading-text">LOADING_<span className="loading-cursor">▌</span></div>
-    </div>
-  )
 
   return (
     <>
