@@ -2,15 +2,14 @@ import { useEffect, useRef, useState } from 'react'
 import type { KeyboardEvent, ReactNode } from 'react'
 import './App.css'
 import formalPhoto from './assets/formal.jpeg'
-import casualPhoto from './assets/causal.jpeg'
+import casualPhoto from './assets/casual.jpeg'
+import { portfolio } from './data/portfolio'
+import type { PortfolioData, Project } from './data/portfolio'
 import { GAMES, getBest } from './games/common'
 import { Game2048, Snake } from './games/live'
 import type { LiveGameProps } from './games/live'
 import { TEXT_GAMES } from './games/text'
 import type { TextGame } from './games/text'
-
-import { portfolio } from './data/portfolio'
-import type { PortfolioData, Project } from './data/portfolio'
 
 const hasRepo = (p: Project) => !!p.githubUrl && p.githubUrl !== '#'
 
@@ -46,7 +45,7 @@ const TCMDS: [string, string, string][] = [
   ['achievements','a','achievements & certs'],['games','g','play terminal games'],
   ['banner','b','show this screen'],['clear','','clear the terminal'],
 ]
-const LIVE_GAMES: Record<string, (p: LiveGameProps) => ReactNode> = { snake: Snake, '2048': Game2048 }
+const LIVE_GAMES = ['snake', '2048']
 function LiveGame({ name, onExit }: LiveGameProps & { name: string }) {
   return name === 'snake' ? <Snake onExit={onExit}/> : <Game2048 onExit={onExit}/>
 }
@@ -93,7 +92,7 @@ function TerminalEmulator({ data }: { data: PortfolioData }) {
   const [lines, setLines] = useState<Line[]>(() => buildBanner(data))
   const [input, setInput] = useState('')
   const [cmdHist, setCmdHist] = useState<string[]>([])
-  const [, setHistIdx] = useState(-1)
+  const [histIdx, setHistIdx] = useState(-1)
   const [game, setGame] = useState<ActiveGame | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -113,7 +112,7 @@ function TerminalEmulator({ data }: { data: PortfolioData }) {
     const cmd = raw.trim().toLowerCase()
     const echo = L(<div className="tc-echo"><TPrompt /><span>{raw}</span></div>)
     const gameName = cmd.replace(/^play\s+/, '')
-    if (LIVE_GAMES[gameName]) { setGame({ kind: 'live', name: gameName }); setLines(p=>[...p,echo]); return }
+    if (LIVE_GAMES.includes(gameName)) { setGame({ kind: 'live', name: gameName }); setLines(p=>[...p,echo]); return }
     if (TEXT_GAMES[gameName]) { const g = TEXT_GAMES[gameName](); setGame({ kind: 'text', game: g }); setLines(p=>[...p,echo,BL(),...g.intro.map(L),BL()]); return }
     if (cmd === 'clear') { setLines([]); return }
     if (cmd === 'email') { window.open(`mailto:${data.email}`); setLines(p=>[...p,echo,L(<span className="tc-dim">opening email client...</span>),BL()]); return }
@@ -136,8 +135,8 @@ function TerminalEmulator({ data }: { data: PortfolioData }) {
   }
   const onKey = (e: KeyboardEvent<HTMLInputElement>) => {
     if(e.key==='Enter'){const v=input;if(v.trim())setCmdHist(h=>[v,...h]);setHistIdx(-1);run(v);setInput('')}
-    else if(e.key==='ArrowUp'){e.preventDefault();setHistIdx(p=>{const n=Math.min(p+1,cmdHist.length-1);setInput(cmdHist[n]??'');return n})}
-    else if(e.key==='ArrowDown'){e.preventDefault();setHistIdx(p=>{const n=Math.max(p-1,-1);setInput(n===-1?'':cmdHist[n]??'');return n})}
+    else if(e.key==='ArrowUp'){e.preventDefault();const n=Math.min(histIdx+1,cmdHist.length-1);setHistIdx(n);setInput(cmdHist[n]??'')}
+    else if(e.key==='ArrowDown'){e.preventDefault();const n=Math.max(histIdx-1,-1);setHistIdx(n);setInput(cmdHist[n]??'')}
   }
   return (
     <div className="tc-body" onClick={()=>inputRef.current?.focus()}>
@@ -509,7 +508,6 @@ function CircleDot() {
 
 // ── APP ───────────────────────────────────────────────────────────────────────
 export default function App() {
-  const data = portfolio
   const [showTerminal, setShowTerminal] = useState(false)
   useEffect(() => {
     const h = (e: globalThis.KeyboardEvent) => { if((e.ctrlKey||e.metaKey)&&e.key==='`'){e.preventDefault();setShowTerminal(v=>!v)} }
@@ -524,11 +522,11 @@ export default function App() {
       <IdentitySection/>
       <StatsSection/>
       <TechStackSection/>
-      <SelectedWorksSection projects={data.projects}/>
+      <SelectedWorksSection projects={portfolio.projects}/>
       <TimelineSection/>
-      <ContactSection data={data}/>
-      <Footer data={data}/>
-      {showTerminal && <TerminalModal data={data} onClose={()=>setShowTerminal(false)}/>}
+      <ContactSection data={portfolio}/>
+      <Footer data={portfolio}/>
+      {showTerminal && <TerminalModal data={portfolio} onClose={()=>setShowTerminal(false)}/>}
     </>
   )
 }

@@ -48,16 +48,6 @@ body::before {
 /* ── SCROLL REVEAL ─────────────────────────────────────────────────────────── */
 .reveal         { opacity: 0; transform: translateY(40px); transition: opacity 0.8s ease, transform 0.8s ease; }
 .reveal.on      { opacity: 1; transform: translateY(0); }
-.reveal-l       { opacity: 0; transform: translateX(-40px); transition: opacity 0.8s ease, transform 0.8s ease; }
-.reveal-l.on    { opacity: 1; transform: translateX(0); }
-
-/* ── LOADING ───────────────────────────────────────────────────────────────── */
-.site-loading {
-  min-height: 100vh; display: flex; align-items: center; justify-content: center;
-  font-family: var(--display); font-size: 48px; letter-spacing: 4px;
-}
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-.loading-cursor { animation: blink 0.8s step-end infinite; }
 
 /* ── CIRCLE DOT ────────────────────────────────────────────────────────────── */
 .circle-dot {
